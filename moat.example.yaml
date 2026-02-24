@@ -1,0 +1,42 @@
+# moat.yaml — The Moat configuration
+# Copy this to moat.yaml and customize, or run `moat init`
+
+perimeter:
+  # Sources inside the castle (no scanning)
+  trusted:
+    - "owner:*"            # direct chat with agent owner
+    - "workspace:*"        # agent's own files
+    - "internal:*"         # internal tool calls
+
+  # Sources outside the castle (always scanned)
+  untrusted:
+    - "web:*"              # all web content
+    - "message:unknown:*"  # messages from unrecognized senders
+    - "file:external:*"    # files from outside the workspace
+    - "plugin:*"           # third-party plugins/skills
+
+# Inbound scanning (v1)
+inbound:
+  # What to do with suspect content
+  on_suspect: quarantine     # quarantine | block | sanitize | pass
+
+  # Fast heuristic checks (Layer 1)
+  strip_hidden_text: true    # remove CSS-hidden text
+  strip_zero_width: true     # remove zero-width Unicode characters
+  strip_base64_instructions: true  # detect and strip base64-encoded prompts
+  max_content_length: 100000 # truncate content beyond this (chars)
+
+  # Credential scanning (always on, cannot be disabled)
+  # Detects API keys, tokens, private keys in inbound content
+
+# Audit logging
+logging:
+  enabled: true
+  format: json               # json | text
+  level: info                # debug | info | warn | error
+  path: ./moat.log           # log file location
+
+# Proxy settings
+proxy:
+  host: 127.0.0.1
+  port: 9999
