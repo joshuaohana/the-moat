@@ -44,7 +44,19 @@ BLOCKED → result replaced with warning, agent never sees poisoned content
 
 OpenClaw's `message_received` hook is fire-and-forget — it can observe but not block content. When The Moat detects a suspicious inbound message, it flags it, and the `before_prompt_build` hook prepends a warning to the agent's context. Combined with OpenClaw's own `EXTERNAL_UNTRUSTED_CONTENT` wrapping, this provides adequate defense for v1.
 
-A proper hard-block would require an upstream `before_message_process` modifying hook — a small PR we plan to contribute.
+A proper hard-block would require an upstream `before_message_process` modifying hook — a small PR we plan to contribute to OpenClaw.
+
+## Upstream PR: `before_message_process` Hook
+
+**Goal:** Add a modifying hook that fires before inbound messages reach the agent, allowing plugins to scan, modify, or block content.
+
+**Why it'll land:**
+- Two existing discussions requesting exactly this (#5178, #3387) — demand is proven
+- OpenClaw's own SECURITY.md says prompt injection is "out of scope" — they want community solutions
+- The pattern already exists: `message_sending` is a modifying hook for outbound. This is the inbound equivalent.
+- Tiny PR: change `runVoidHook("message_received")` to `runModifyingHook("before_message_process")` + keep the void hook for backward compat
+
+**If the PR doesn't land:** The workaround (detect + warn via `before_prompt_build`) is functional but not reliable against sophisticated attacks. Research shows 31-47% attack success rates against frontier models even with warnings. Don't expose agents to public channels without hard-blocking.
 
 ## Setup
 
