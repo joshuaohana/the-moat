@@ -40,13 +40,13 @@ All HTTP responses are scanned before your agent sees them. Zero code changes.
 
 ### OpenClaw
 
-OpenClaw's extension system has a `tool_result` hook that fires after every tool call. The Moat plugs in here — scanning results from `web_fetch`, `web_search`, `browser`, etc. before they enter the model's context window.
+OpenClaw's plugin hook system lets The Moat intercept tool results before they enter the model's context window. No proxy needed — the plugin calls The Moat's `/scan` API directly.
 
 ```
-tool executes → result comes back → The Moat scans it → clean result enters context
+web_fetch executes → result comes back → plugin sends to /scan → The Moat scans → clean result enters context
 ```
 
-Setup: install The Moat plugin, point it at the scanner. Details in [docs/openclaw.md](docs/openclaw.md).
+Uses `tool_result_persist` (modify/replace results), `before_tool_call` (block suspicious URLs), and `before_prompt_build` (warn on flagged inbound messages). Full details in [docs/openclaw.md](docs/openclaw.md).
 
 ### Any Agent (Direct API)
 
