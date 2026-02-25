@@ -37,6 +37,18 @@ export HTTPS_PROXY=http://localhost:9999
 
 That's it. Every inbound response is now scanned before your agent sees it.
 
+### OpenClaw (Native Plugin)
+
+For [OpenClaw](https://github.com/openclaw/openclaw) users, The Moat hooks directly into the tool pipeline — no proxy needed:
+
+```json
+{
+  "moat": true
+}
+```
+
+Same engine, tighter integration. Content is scanned before it hits the model's context window.
+
 ## What It Catches
 
 - **Prompt injection** — "ignore previous instructions", role-play steering, DAN-style jailbreaks
@@ -46,16 +58,16 @@ That's it. Every inbound response is now scanned before your agent sees it.
 
 ## Configuration
 
-`moat.yaml` defines your trust boundary:
+`moat.yaml` defines your trust boundary using **bridges** — trusted sources that cross freely into the castle. Everything else hits the wall.
 
 ```yaml
-perimeter:
-  trusted:
-    - "owner:*"          # your direct chat with the agent
-    - "workspace:*"      # agent's own files
-  untrusted:
-    - "web:*"            # all web content
-    - "message:*"        # messages from unknown senders
+bridges:
+  - "owner:*"          # your direct chat with the agent
+  - "workspace:*"      # agent's own files
+
+always_scan:
+  - "web:*"            # all web content
+  - "message:*"        # messages from unknown senders
 
 inbound:
   on_suspect: quarantine   # quarantine | block | sanitize | pass
@@ -86,7 +98,7 @@ The agent can't talk itself out of The Moat. It runs as infrastructure, not as a
 
 ## Roadmap
 
-- **v1 (current):** Inbound content scanning — Pattern Engine + HTTP proxy + audit logging
+- **v1 (current):** Inbound content scanning — Pattern Engine + HTTP proxy + OpenClaw plugin + audit logging
 - **v2:** Outbound filtering, policy engine (domain allowlists, action policies), LLM classifier layer
 - **v3:** Agent networking — standardized inbox, discovery protocol, mutual trust verification
 - **v4:** Memory integrity monitoring, adaptive pattern evolution, multi-agent trust zones

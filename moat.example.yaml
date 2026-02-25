@@ -1,19 +1,20 @@
 # moat.yaml — The Moat configuration
 # Copy this to moat.yaml and customize, or run `moat init`
 
-perimeter:
-  # Sources inside the castle (no scanning)
-  trusted:
-    - "owner:*"            # direct chat with agent owner
-    - "workspace:*"        # agent's own files
-    - "internal:*"         # internal tool calls
+# Bridges — trusted sources that cross freely into the castle
+# Everything NOT on a bridge gets scanned at the wall
+bridges:
+  - "owner:*"            # direct chat with agent owner
+  - "workspace:*"        # agent's own files
+  - "internal:*"         # internal tool calls
 
-  # Sources outside the castle (always scanned)
-  untrusted:
-    - "web:*"              # all web content
-    - "message:unknown:*"  # messages from unrecognized senders
-    - "file:external:*"    # files from outside the workspace
-    - "plugin:*"           # third-party plugins/skills
+# Everything else is untrusted by default. You can explicitly
+# list sources to ALWAYS scan (even if they somehow match a bridge):
+always_scan:
+  - "web:*"              # all web content
+  - "message:unknown:*"  # messages from unrecognized senders
+  - "file:external:*"    # files from outside the workspace
+  - "plugin:*"           # third-party plugins/skills
 
 # Inbound scanning (v1)
 inbound:
