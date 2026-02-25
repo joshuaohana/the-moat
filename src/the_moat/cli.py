@@ -12,7 +12,8 @@ from .engine import PatternEngine
 from .logger import AuditLogger
 
 
-PID_FILE = "/tmp/moat.pid"
+PID_DIR = os.path.expanduser("~/.moat")
+PID_FILE = os.path.join(PID_DIR, "moat.pid")
 
 
 @click.group()
@@ -34,6 +35,7 @@ def start(config, host, port):
         cfg.server.port = port
 
     # Write PID file
+    os.makedirs(PID_DIR, exist_ok=True)
     with open(PID_FILE, "w") as f:
         f.write(str(os.getpid()))
 

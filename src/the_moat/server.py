@@ -1,14 +1,34 @@
 """The Moat HTTP server — /scan API endpoint."""
 
 import time
+from collections import defaultdict
 from typing import Optional
 
 from flask import Flask, jsonify, request
 
+from . import __version__
 from .classifier import LLMClassifier
 from .config import MoatConfig, load_config
 from .engine import PatternEngine
 from .logger import AuditLogger
+
+
+# Simple in-memory rate limiter
+class RateLimiter:
+    def __init__(self, max_requests: int = 100, window_seconds: int = 60):
+        self.max_requests = max_requests
+        self.window = window_seconds
+        self._hits: dict[str, list[float]] = defaultdict(list)
+
+    def is_allowed(self, key: str) -> bool:
+        now = time.time()
+        hits = self._hits[key]
+        # Prune old entries
+        self._hits[key] = [t for t in hits if now - t < self.window]
+        if len(self._hits[key]) >= self.max_requests:
+            return False
+        self._hits[key].append(now)
+        return True
 
 
 def create_app(config: Optional[MoatConfig] = None) -> Flask:
@@ -19,6 +39,7 @@ def create_app(config: Optional[MoatConfig] = None) -> Flask:
     app = Flask(__name__)
     engine = PatternEngine()
     audit = AuditLogger(path=config.logging.path, enabled=config.logging.enabled)
+    limiter = RateLimiter(max_requests=100, window_seconds=60)
 
     classifier = None
     if config.layer2.enabled:
@@ -37,13 +58,18 @@ def create_app(config: Optional[MoatConfig] = None) -> Flask:
     def health():
         return jsonify({
             "status": "ok",
-            "version": "0.1.0",
+            "version": __version__,
             "layer1": config.layer1.enabled,
             "layer2": classifier is not None,
         })
 
     @app.route("/scan", methods=["POST"])
     def scan():
+        # Rate limiting
+        client_ip = request.remote_addr or "unknown"
+        if not limiter.is_allowed(client_ip):
+            return jsonify({"error": "rate limit exceeded", "retry_after_seconds": 60}), 429
+
         start = time.perf_counter()
         data = request.get_json(silent=True) or {}
         text = data.get("text", "")

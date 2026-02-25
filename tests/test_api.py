@@ -88,3 +88,11 @@ class TestScanEndpoint:
         resp = client.post("/scan", json={"text": "Normal text " * 100})
         data = resp.get_json()
         assert data["ms"] < 50  # Should be well under 50ms
+
+
+class TestRateLimiting:
+    def test_rate_limit_not_hit(self, client):
+        """Normal usage should not trigger rate limit."""
+        for _ in range(5):
+            resp = client.post("/scan", json={"text": "hello"})
+            assert resp.status_code == 200

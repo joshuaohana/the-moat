@@ -34,7 +34,10 @@ class PatternEngine:
     def __init__(self, rules_path: Optional[str] = None):
         self.patterns: list[Pattern] = []
         if rules_path is None:
-            rules_path = str(Path(__file__).parent.parent.parent / "rules" / "patterns.json")
+            # Try package-internal rules first, then fall back to repo root
+            pkg_rules = Path(__file__).parent / "rules" / "patterns.json"
+            repo_rules = Path(__file__).parent.parent.parent / "rules" / "patterns.json"
+            rules_path = str(pkg_rules if pkg_rules.exists() else repo_rules)
         self.load_rules(rules_path)
 
     def load_rules(self, path: str) -> None:

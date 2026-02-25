@@ -49,6 +49,9 @@ Documentation = "https://github.com/joshuaohana/the-moat#readme"
 Repository = "https://github.com/joshuaohana/the-moat"
 Issues = "https://github.com/joshuaohana/the-moat/issues"
 
+[tool.setuptools.package-data]
+the_moat = ["rules/*.json"]
+
 [tool.ruff]
 target-version = "py310"
 line-length = 100

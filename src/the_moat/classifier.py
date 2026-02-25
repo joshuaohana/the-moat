@@ -66,24 +66,21 @@ class LLMClassifier:
             )
 
         try:
-            import httpx
+            import httpx as _httpx
         except ImportError:
-            try:
-                import requests as httpx
-            except ImportError:
-                elapsed = (time.perf_counter() - start) * 1000
-                return ClassifierResult(
-                    malicious=False,
-                    confidence=0.0,
-                    reason="No HTTP library available (install httpx or requests)",
-                    ms=elapsed,
-                    error="missing_dependency",
-                )
+            elapsed = (time.perf_counter() - start) * 1000
+            return ClassifierResult(
+                malicious=False,
+                confidence=0.0,
+                reason="No HTTP library available (install httpx)",
+                ms=elapsed,
+                error="missing_dependency",
+            )
 
         truncated = text[:self.max_chars]
 
         try:
-            response = httpx.post(
+            response = _httpx.post(
                 "https://api.openai.com/v1/chat/completions",
                 headers={
                     "Authorization": f"Bearer {self.api_key}",
