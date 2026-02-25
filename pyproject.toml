@@ -10,7 +10,7 @@ readme = "README.md"
 license = "MIT"
 requires-python = ">=3.10"
 authors = [
-    { name = "Ohana Industries", email = "hello@ohanaindustries.com" },
+    { name = "Joshua Ohana" },
 ]
 keywords = ["ai", "security", "prompt-injection", "llm", "agent", "firewall"]
 classifiers = [

@@ -124,4 +124,4 @@ MIT — see [LICENSE](LICENSE)
 
 *"The castle wall doesn't negotiate with the people trying to get through it."* 🏰
 
-Built by [Ohana Industries](https://ohanaindustries.com)
+Built by Joshua Ohana

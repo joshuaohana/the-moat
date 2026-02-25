@@ -50,7 +50,7 @@ The most impactful contribution is new detection patterns. These are the "antivi
 
 ## Reporting Vulnerabilities
 
-If you find a security issue in The Moat itself, **do not open a public issue**. Email security@ohanaindustries.com instead.
+If you find a security issue in The Moat itself, **do not open a public issue**. Email the repo security advisories tab instead.
 
 ## Code of Conduct
 
