@@ -67,7 +67,7 @@ curl -X POST http://localhost:9999/scan \
 - `SANITIZE` — suspicious/context-dependent phrases detected; dangerous spans are replaced with tagged placeholders like `[REDACTED:injection]` while preserving surrounding text.
 - `BLOCK` — hard-block signatures (format marker injections, zero-width/obfuscation markers, obvious secret/key material).
 
-For backward compatibility, responses also include legacy-style fields (`legacy_verdict`, `blocked`).
+Responses use the canonical schema only: `verdict`, `sanitized_text` (when applicable), `findings`, and `categories` (plus core metadata such as `reason`, `layer`, `confidence`, `ms`, and optional `llm`).
 
 ## What It Catches
 

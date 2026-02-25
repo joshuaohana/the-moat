@@ -35,12 +35,6 @@ class RateLimiter:
         return True
 
 
-def _legacy_verdict(verdict: Verdict) -> str:
-    if verdict == Verdict.BLOCK:
-        return "BLOCKED"
-    return "CLEAN"
-
-
 def _serialize_findings(findings):
     return [
         {
@@ -105,8 +99,6 @@ def create_app(config: Optional[MoatConfig] = None) -> Flask:
         if not text:
             return jsonify({
                 "verdict": Verdict.ALLOW.value,
-                "legacy_verdict": "CLEAN",
-                "blocked": False,
                 "reason": "empty input",
                 "layer": 0,
                 "confidence": 1.0,
@@ -158,8 +150,6 @@ def create_app(config: Optional[MoatConfig] = None) -> Flask:
             )
             return jsonify({
                 "verdict": verdict.value,
-                "legacy_verdict": _legacy_verdict(verdict),
-                "blocked": True,
                 "reason": reason,
                 "layer": 1,
                 "confidence": confidence,
@@ -215,8 +205,6 @@ def create_app(config: Optional[MoatConfig] = None) -> Flask:
         )
         response = {
             "verdict": verdict.value,
-            "legacy_verdict": _legacy_verdict(verdict),
-            "blocked": verdict == Verdict.BLOCK,
             "reason": reason,
             "layer": layer,
             "confidence": confidence,

@@ -32,13 +32,16 @@ class TestHealthEndpoint:
 
 
 class TestScanEndpoint:
+    def _assert_no_legacy_fields(self, data):
+        assert "legacy_verdict" not in data
+        assert "blocked" not in data
+
     def test_scan_clean(self, client):
         resp = client.post("/scan", json={"text": "Hello, world!"})
         assert resp.status_code == 200
         data = resp.get_json()
         assert data["verdict"] == "ALLOW"
-        assert data["legacy_verdict"] == "CLEAN"
-        assert data["blocked"] is False
+        self._assert_no_legacy_fields(data)
         assert data["sanitized_text"] is None
         assert "ms" in data
 
@@ -49,7 +52,7 @@ class TestScanEndpoint:
         assert resp.status_code == 200
         data = resp.get_json()
         assert data["verdict"] == "SANITIZE"
-        assert data["blocked"] is False
+        self._assert_no_legacy_fields(data)
         assert data["layer"] == 1
         assert "[REDACTED:injection]" in data["sanitized_text"]
 
@@ -60,18 +63,20 @@ class TestScanEndpoint:
         assert resp.status_code == 200
         data = resp.get_json()
         assert data["verdict"] == "BLOCK"
-        assert data["blocked"] is True
+        self._assert_no_legacy_fields(data)
         assert data["layer"] == 1
 
     def test_scan_empty(self, client):
         resp = client.post("/scan", json={"text": ""})
         data = resp.get_json()
         assert data["verdict"] == "ALLOW"
+        self._assert_no_legacy_fields(data)
 
     def test_scan_no_body(self, client):
         resp = client.post("/scan", content_type="application/json", data="{}")
         data = resp.get_json()
         assert data["verdict"] == "ALLOW"
+        self._assert_no_legacy_fields(data)
 
     def test_scan_with_metadata(self, client):
         resp = client.post("/scan", json={
@@ -81,6 +86,7 @@ class TestScanEndpoint:
         })
         data = resp.get_json()
         assert data["verdict"] == "ALLOW"
+        self._assert_no_legacy_fields(data)
 
     def test_scan_format_injection_hard_block(self, client):
         resp = client.post("/scan", json={
@@ -88,11 +94,13 @@ class TestScanEndpoint:
         })
         data = resp.get_json()
         assert data["verdict"] == "BLOCK"
+        self._assert_no_legacy_fields(data)
 
     def test_scan_response_time(self, client):
         """Pattern engine should be fast."""
         resp = client.post("/scan", json={"text": "Normal text " * 100})
         data = resp.get_json()
+        self._assert_no_legacy_fields(data)
         assert data["ms"] < 50
 
     def test_scan_returns_findings_and_categories(self, client):
@@ -101,6 +109,7 @@ class TestScanEndpoint:
         })
         data = resp.get_json()
         assert data["verdict"] == "SANITIZE"
+        self._assert_no_legacy_fields(data)
         assert len(data["findings"]) >= 1
         assert "steering" in data["categories"] or "extraction" in data["categories"]
 
