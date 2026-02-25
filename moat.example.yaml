@@ -8,36 +8,36 @@ bridges:
   - "workspace:*"        # agent's own files
   - "internal:*"         # internal tool calls
 
-# Everything else is untrusted by default. You can explicitly
-# list sources to ALWAYS scan (even if they somehow match a bridge):
-always_scan:
-  - "web:*"              # all web content
-  - "message:unknown:*"  # messages from unrecognized senders
-  - "file:external:*"    # files from outside the workspace
-  - "plugin:*"           # third-party plugins/skills
+# Scanner configuration
+scanner:
+  # Layer 1: Pattern Engine (regex + heuristics, <1ms)
+  layer1:
+    enabled: true
+    strip_hidden_text: true        # remove CSS-hidden text
+    strip_zero_width: true         # remove zero-width Unicode characters
+    strip_base64_instructions: true # detect base64-encoded prompts
+    max_content_length: 100000     # truncate beyond this (chars)
 
-# Inbound scanning (v1)
-inbound:
-  # What to do with suspect content
-  on_suspect: quarantine     # quarantine | block | sanitize | pass
+  # Layer 2: LLM Classifier (cheap model, ~100ms)
+  layer2:
+    enabled: true
+    provider: openai               # openai | anthropic | local
+    model: gpt-4.1-nano            # cheapest/fastest
+    api_key_env: OPENAI_API_KEY    # env var containing the API key
+    threshold: 0.85                # confidence score to trigger block
+    timeout_ms: 3000               # give up after this long
+    max_scan_length: 2048          # chars to send to classifier
 
-  # Fast heuristic checks (Layer 1)
-  strip_hidden_text: true    # remove CSS-hidden text
-  strip_zero_width: true     # remove zero-width Unicode characters
-  strip_base64_instructions: true  # detect and strip base64-encoded prompts
-  max_content_length: 100000 # truncate content beyond this (chars)
-
-  # Credential scanning (always on, cannot be disabled)
-  # Detects API keys, tokens, private keys in inbound content
+  # What to do when content is flagged
+  on_suspect: block                # block | quarantine | sanitize | pass
 
 # Audit logging
 logging:
   enabled: true
-  format: json               # json | text
-  level: info                # debug | info | warn | error
-  path: ./moat.log           # log file location
+  format: json                     # json | text
+  path: ./moat.log
 
-# Proxy settings
-proxy:
+# Server settings (for /scan API and proxy)
+server:
   host: 127.0.0.1
   port: 9999
