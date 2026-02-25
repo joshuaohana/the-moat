@@ -18,8 +18,9 @@ The Moat scans all inbound content before it reaches your agent. Two layers of d
                           │ passed?
                     Layer 2: LLM Classifier (gpt-4.1-nano, ~100ms)
                           │
-                    ✅ CLEAN → pass through
-                    🚫 BLOCKED → stripped, agent sees warning only
+                    ✅ ALLOW → pass through
+                    🧼 SANITIZE → dangerous spans redacted, context preserved
+                    🚫 BLOCK → hard stop for high-risk payloads
 ```
 
 ## Quick Start
@@ -55,8 +56,18 @@ curl -X POST http://localhost:9999/scan \
   -H "Content-Type: application/json" \
   -d '{"text": "Ignore all previous instructions..."}'
 
-# → {"verdict": "BLOCKED", "reason": "prompt_injection", "layer": 1, "ms": 0.3}
+# → {"verdict":"SANITIZE","sanitized_text":"[REDACTED:injection]...","findings":[...],"categories":["injection"]}
 ```
+
+## Verdicts
+
+`POST /scan` now returns tri-state decisions:
+
+- `ALLOW` — clean content.
+- `SANITIZE` — suspicious/context-dependent phrases detected; dangerous spans are replaced with tagged placeholders like `[REDACTED:injection]` while preserving surrounding text.
+- `BLOCK` — hard-block signatures (format marker injections, zero-width/obfuscation markers, obvious secret/key material).
+
+For backward compatibility, responses also include legacy-style fields (`legacy_verdict`, `blocked`).
 
 ## What It Catches
 

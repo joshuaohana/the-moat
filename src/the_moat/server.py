@@ -9,7 +9,7 @@ from flask import Flask, jsonify, request
 from . import __version__
 from .classifier import LLMClassifier
 from .config import MoatConfig, load_config
-from .engine import PatternEngine
+from .engine import PatternEngine, Verdict
 from .logger import AuditLogger
 
 
@@ -33,6 +33,28 @@ class RateLimiter:
             return False
         self._hits.setdefault(key, []).append(now)
         return True
+
+
+def _legacy_verdict(verdict: Verdict) -> str:
+    if verdict == Verdict.BLOCK:
+        return "BLOCKED"
+    return "CLEAN"
+
+
+def _serialize_findings(findings):
+    return [
+        {
+            "pattern_id": f.pattern_id,
+            "category": f.category,
+            "severity": f.severity,
+            "name": f.name,
+            "match": f.match,
+            "start": f.start,
+            "end": f.end,
+            "hard_block": f.hard_block,
+        }
+        for f in findings
+    ]
 
 
 def create_app(config: Optional[MoatConfig] = None) -> Flask:
@@ -82,10 +104,15 @@ def create_app(config: Optional[MoatConfig] = None) -> Flask:
 
         if not text:
             return jsonify({
-                "verdict": "CLEAN",
+                "verdict": Verdict.ALLOW.value,
+                "legacy_verdict": "CLEAN",
+                "blocked": False,
                 "reason": "empty input",
                 "layer": 0,
                 "confidence": 1.0,
+                "findings": [],
+                "categories": [],
+                "sanitized_text": None,
                 "ms": 0.0,
             })
 
@@ -97,71 +124,110 @@ def create_app(config: Optional[MoatConfig] = None) -> Flask:
         if config.layer1.strip_zero_width:
             text = engine.strip_hidden_content(text)
 
-        # Layer 1: Pattern Engine
-        if config.layer1.enabled:
-            result = engine.scan(text)
-            if result.blocked:
-                total_ms = (time.perf_counter() - start) * 1000
-                audit.log(
-                    text_length=len(text),
-                    verdict="BLOCKED",
-                    reason=result.reason,
-                    layer=1,
-                    confidence=1.0,
-                    ms=total_ms,
-                    source=source,
-                    url=url,
-                )
-                return jsonify({
-                    "verdict": "BLOCKED",
-                    "reason": result.reason,
-                    "layer": 1,
-                    "confidence": 1.0,
-                    "ms": round(total_ms, 2),
-                })
+        result = engine.scan(text) if config.layer1.enabled else None
 
-        # Layer 2: LLM Classifier (only if Layer 1 passed)
+        if result is None:
+            verdict = Verdict.ALLOW
+            reason = ""
+            findings = []
+            categories = []
+            sanitized_text = None
+            layer = 1
+            confidence = 1.0
+        else:
+            verdict = result.verdict
+            reason = result.reason
+            findings = result.findings
+            categories = result.categories
+            sanitized_text = result.sanitized_text if verdict != Verdict.ALLOW else None
+            layer = 1
+            confidence = 1.0
+
+        # Hard-block always from layer 1.
+        if verdict == Verdict.BLOCK:
+            total_ms = (time.perf_counter() - start) * 1000
+            audit.log(
+                text_length=len(text),
+                verdict=verdict.value,
+                reason=reason,
+                layer=1,
+                confidence=confidence,
+                ms=total_ms,
+                source=source,
+                url=url,
+            )
+            return jsonify({
+                "verdict": verdict.value,
+                "legacy_verdict": _legacy_verdict(verdict),
+                "blocked": True,
+                "reason": reason,
+                "layer": 1,
+                "confidence": confidence,
+                "findings": _serialize_findings(findings),
+                "categories": categories,
+                "sanitized_text": sanitized_text,
+                "ms": round(total_ms, 2),
+            })
+
+        # Layer 2: Optional classifier can refine ALLOW/SANITIZE/BLOCK with rationale.
+        llm_meta = None
         if classifier is not None:
             llm_result = classifier.classify(text)
-            if llm_result.malicious and llm_result.confidence >= config.layer2.threshold:
-                total_ms = (time.perf_counter() - start) * 1000
-                audit.log(
-                    text_length=len(text),
-                    verdict="BLOCKED",
-                    reason=f"LLM classifier: {llm_result.reason}",
-                    layer=2,
-                    confidence=llm_result.confidence,
-                    ms=total_ms,
-                    source=source,
-                    url=url,
-                )
-                return jsonify({
-                    "verdict": "BLOCKED",
-                    "reason": f"LLM classifier: {llm_result.reason}",
-                    "layer": 2,
-                    "confidence": llm_result.confidence,
-                    "ms": round(total_ms, 2),
-                })
+            llm_meta = {
+                "verdict": llm_result.verdict.value,
+                "confidence": llm_result.confidence,
+                "reason": llm_result.reason,
+                "error": llm_result.error,
+            }
 
-        # Clean
+            # Deterministic override policy:
+            # - high-confidence BLOCK is allowed to upgrade
+            # - SANITIZE can upgrade ALLOW at threshold
+            # - ALLOW can de-escalate SANITIZE at threshold
+            if llm_result.verdict == Verdict.BLOCK and llm_result.confidence >= config.layer2.threshold:
+                verdict = Verdict.BLOCK
+                reason = f"LLM classifier: {llm_result.reason}"
+                layer = 2
+                confidence = llm_result.confidence
+            elif llm_result.verdict == Verdict.SANITIZE and llm_result.confidence >= config.layer2.threshold and verdict == Verdict.ALLOW:
+                verdict = Verdict.SANITIZE
+                reason = f"LLM classifier: {llm_result.reason}"
+                layer = 2
+                confidence = llm_result.confidence
+                sanitized_text = sanitized_text or text
+            elif llm_result.verdict == Verdict.ALLOW and llm_result.confidence >= config.layer2.threshold and verdict == Verdict.SANITIZE:
+                verdict = Verdict.ALLOW
+                reason = f"LLM classifier: {llm_result.reason}"
+                layer = 2
+                confidence = llm_result.confidence
+                sanitized_text = None
+
         total_ms = (time.perf_counter() - start) * 1000
         audit.log(
             text_length=len(text),
-            verdict="CLEAN",
-            reason="",
-            layer=2 if classifier else 1,
-            confidence=1.0,
+            verdict=verdict.value,
+            reason=reason,
+            layer=layer,
+            confidence=confidence,
             ms=total_ms,
             source=source,
             url=url,
         )
-        return jsonify({
-            "verdict": "CLEAN",
-            "reason": "",
-            "layer": 2 if classifier else 1,
-            "confidence": 1.0,
+        response = {
+            "verdict": verdict.value,
+            "legacy_verdict": _legacy_verdict(verdict),
+            "blocked": verdict == Verdict.BLOCK,
+            "reason": reason,
+            "layer": layer,
+            "confidence": confidence,
+            "findings": _serialize_findings(findings),
+            "categories": categories,
+            "sanitized_text": sanitized_text,
             "ms": round(total_ms, 2),
-        })
+        }
+        if llm_meta is not None:
+            response["llm"] = llm_meta
+        return jsonify(response)
 
     return app
 
