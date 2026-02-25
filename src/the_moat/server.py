@@ -22,12 +22,16 @@ class RateLimiter:
 
     def is_allowed(self, key: str) -> bool:
         now = time.time()
-        hits = self._hits[key]
-        # Prune old entries
-        self._hits[key] = [t for t in hits if now - t < self.window]
-        if len(self._hits[key]) >= self.max_requests:
+        hits = self._hits.get(key, [])
+        # Prune old entries and clean up empty keys (prevent memory leak)
+        current = [t for t in hits if now - t < self.window]
+        if not current:
+            self._hits.pop(key, None)
+        else:
+            self._hits[key] = current
+        if len(current) >= self.max_requests:
             return False
-        self._hits[key].append(now)
+        self._hits.setdefault(key, []).append(now)
         return True
 
 
