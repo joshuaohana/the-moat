@@ -136,7 +136,7 @@ Choose fail-open only if you intentionally accept that outage-time risk.
 
   logging: {
     verbosity: "info",                // silent|error|info|debug
-    audit: false                        // emit audit logs for hook decisions
+    audit: true                         // emit audit logs for hook decisions (recommended)
   }
 }
 ```
@@ -188,7 +188,7 @@ Example snippet (adjust to your OpenClaw config shape):
           "messageReceived": true
         },
         "scan": {
-          "toolAllowlist": ["web_fetch", "browser", "read"],
+          "toolAllowlist": [],
           "toolDenylist": []
         },
         "urlPolicy": {
@@ -204,7 +204,7 @@ Example snippet (adjust to your OpenClaw config shape):
         },
         "logging": {
           "verbosity": "info",
-          "audit": false
+          "audit": true
         }
       }
     }

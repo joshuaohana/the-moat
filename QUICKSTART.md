@@ -106,7 +106,7 @@ cp -R ~/the-moat/openclaw-plugin /path/to/openclaw/plugins/the-moat
           "baseUrl": "http://127.0.0.1:9999",
           "timeoutMs": 1500,
           "retries": 1,
-          "failOpen": true
+          "failOpen": false
         },
         "hooks": {
           "toolResultPersist": true,
@@ -115,7 +115,7 @@ cp -R ~/the-moat/openclaw-plugin /path/to/openclaw/plugins/the-moat
           "messageReceived": true
         },
         "scan": {
-          "toolAllowlist": ["web_fetch", "browser", "read"],
+          "toolAllowlist": [],
           "toolDenylist": []
         },
         "urlPolicy": {
@@ -131,7 +131,7 @@ cp -R ~/the-moat/openclaw-plugin /path/to/openclaw/plugins/the-moat
         },
         "logging": {
           "verbosity": "info",
-          "audit": false
+          "audit": true
         }
       }
     }
