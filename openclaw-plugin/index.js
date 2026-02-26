@@ -31,7 +31,7 @@ const DEFAULT_CONFIG = {
   },
   logging: {
     verbosity: "info", // silent|error|info|debug
-    audit: false,
+    audit: true,
   },
 };
 
