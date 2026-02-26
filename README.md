@@ -55,10 +55,62 @@ OpenClaw integration now focuses on transparent proxy enforcement (see `docs/ope
 
 The old plugin path remains in `openclaw-plugin/` but is deferred/future work.
 
+## ⚠️ Install as the human, not the agent
+
+The Moat must be installed and managed by the **human operator**, not by the AI agent it protects. If the agent can modify the proxy, iptables rules, or systemd service, a prompt injection could disable scanning entirely. See [QUICKSTART.md](QUICKSTART.md) for setup details.
+
 ## Known gaps
 
-See [KNOWN-GAPS.md](KNOWN-GAPS.md).
+See [KNOWN-GAPS.md](KNOWN-GAPS.md) for the full list. The most significant:
+
+- **HTTPS response bodies are not scanned in v1** — CONNECT is tunneled, destination logged only
+- **Inbound messages** (chat/webhooks) don't traverse the proxy
+- **Local file reads** bypass the proxy entirely
+
+## Roadmap
+
+### v1 (current) — Transparent HTTP Proxy
+- ✅ HTTP response body scanning (Pattern Engine + optional LLM Classifier)
+- ✅ iptables-enforced transparent proxy (agent cannot bypass)
+- ✅ HTTPS destination logging (host:port audit trail)
+- ✅ `/scan` API for direct integration
+- ✅ CLI (`moat start --proxy`, `moat scan`, `moat proxy-test`)
+- ✅ Audit logging (JSON, all requests)
+- ✅ Tri-state verdicts: ALLOW / SANITIZE / BLOCK
+
+### v2 — HTTPS Inspection + Outbound Protection
+- HTTPS MITM scanning with local CA (opt-in, for controlled environments)
+- Outbound request body scanning (data exfiltration detection)
+- Domain allowlist/blocklist enforcement
+- Unicode NFKC normalization (kills homoglyphs, diacritics, fullwidth evasion)
+- OpenClaw plugin revival (defense-in-depth for non-HTTP sources)
+- Web dashboard for audit log review
+
+### v3 — Behavioral Monitoring + Agent Networking
+- Behavioral anomaly detection (unusual destinations, access patterns, privilege escalation)
+- Multi-agent trust zones
+- Standardized agent inbox / discovery protocol
+- Memory integrity monitoring (detect tampering with agent persistent files)
+- Adaptive pattern evolution (auto-learn from new attack signatures)
+
+### v4 — Ecosystem
+- Community pattern rule contributions
+- Plugin ecosystem for custom scanning logic
+- Multi-agent deployment orchestration
+- OCR scanning for image-based injection attacks
+
+## Philosophy
+
+1. **Infrastructure, not a plugin.** The security boundary is the OS network layer, not agent configuration.
+2. **Defense in depth.** Pattern engine + LLM classifier. Proxy + optional plugin hooks.
+3. **Can't be disabled by the thing it protects.** Root-owned service, root-owned iptables rules.
+4. **Honest about gaps.** See [KNOWN-GAPS.md](KNOWN-GAPS.md). No security theater.
+5. **Open source.** MIT license. Community contributions welcome.
+
+## Contributing
+
+Pattern rule contributions welcome! See the `rules/` directory for the current pattern set.
 
 ## License
 
-MIT
+MIT — © Joshua Ohana
