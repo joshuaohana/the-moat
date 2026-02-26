@@ -36,6 +36,8 @@ You can also run:
 moat proxy-test
 ```
 
+Note: `moat proxy-test` requires the proxy to already be running. Start it first with `moat start --proxy`.
+
 ## 4) Enforce traffic with iptables (required for transparent mode)
 
 > Run as root (or with sudo). Replace `AGENT_USER` with your agent OS username.
@@ -76,8 +78,8 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-User=moat
-Group=moat
+User=root
+Group=root
 Environment=PYTHONUNBUFFERED=1
 ExecStart=/usr/local/bin/moat start --proxy
 Restart=always
@@ -94,6 +96,14 @@ sudo systemctl daemon-reload
 sudo systemctl enable --now the-moat-proxy.service
 sudo systemctl status the-moat-proxy.service --no-pager
 ```
+
+If you set `HTTP_PROXY` in OpenClaw's systemd environment, also set:
+
+```bash
+NO_PROXY=127.0.0.1,localhost
+```
+
+This keeps local services (e.g., Synapse, trackers, localhost APIs) from being routed through The Moat proxy.
 
 ---
 

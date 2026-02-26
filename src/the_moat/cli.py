@@ -12,7 +12,7 @@ import click
 import httpx
 
 from .config import load_config
-from .engine import PatternEngine
+from .engine import PatternEngine, Verdict
 from .logger import AuditLogger
 
 
@@ -142,14 +142,20 @@ def scan(text):
     engine = PatternEngine()
     result = engine.scan(text)
 
-    if result.blocked:
+    if result.verdict == Verdict.BLOCK:
         click.echo(f"🚫 BLOCKED (Layer 1, {result.ms:.1f}ms)")
         click.echo(f"   Reason: {result.reason}")
-        click.echo(f"   Pattern: {result.pattern_id}")
+        click.echo(f"   Categories: {', '.join(result.categories) if result.categories else 'n/a'}")
         sys.exit(1)
-    else:
-        click.echo(f"✅ CLEAN (Layer 1, {result.ms:.1f}ms)")
-        click.echo("   No patterns matched")
+
+    if result.verdict == Verdict.SANITIZE:
+        click.echo(f"🧼 SANITIZED (Layer 1, {result.ms:.1f}ms)")
+        click.echo(f"   Reason: {result.reason}")
+        click.echo(f"   Sanitized: {result.sanitized_text}")
+        return
+
+    click.echo(f"✅ CLEAN (Layer 1, {result.ms:.1f}ms)")
+    click.echo("   No patterns matched")
 
 
 @main.command()
