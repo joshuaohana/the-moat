@@ -19,6 +19,27 @@ Layer 1 regex catches straightforward attacks, but can be bypassed by representa
 
 **Important:** Layer 2 LLM classifier catches **some** of these, but not reliably all.
 
+## 🔴 BREAKING: Agent can disable its own safety controls
+
+**The entity being protected has administrative control over the protection mechanism.**
+
+If the AI agent has access to its platform's config and restart mechanisms (e.g., OpenClaw's `gateway config.apply` + `gateway restart`), a prompt injection attack doesn't need to sneak past The Moat — it can simply instruct the agent to:
+
+1. Remove The Moat plugin from the platform config
+2. Restart the platform — all scanning stops
+3. Deliver the real payload unscanned
+
+**This is not a Moat bug — it's an architectural reality.** Any agent-side security plugin is fundamentally bypassable when the agent has config/restart access. The Moat still defends against unsophisticated or accidental injection, but it is **not a hard security boundary** until the platform enforces that safety plugins cannot be removed by the agent.
+
+**Mitigations:**
+- Install The Moat where the agent cannot read/modify/stop it (see QUICKSTART.md)
+- Platform-level locked config sections (agent cannot modify safety hooks) — requires upstream support
+- Restrict agent's access to config/restart tools via platform policy
+
+**Status:** Unsolved at the platform level. Operators must enforce separation of privilege manually.
+
+---
+
 ## Architectural gaps
 
 - No outbound scanning — if injection succeeds, nothing prevents data exfiltration
