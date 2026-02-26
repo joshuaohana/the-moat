@@ -41,12 +41,24 @@ class ServerConfig:
 
 
 @dataclass
+class ProxyConfig:
+    bind: str = "127.0.0.1"
+    port: int = 9998
+    connect_timeout_seconds: float = 10.0
+    read_timeout_seconds: float = 30.0
+    write_timeout_seconds: float = 30.0
+    max_scan_body_bytes: int = 1024 * 1024
+    log_https_connect: bool = True
+
+
+@dataclass
 class MoatConfig:
     bridges: list[str] = field(default_factory=lambda: ["owner:*", "workspace:*", "internal:*"])
     layer1: Layer1Config = field(default_factory=Layer1Config)
     layer2: Layer2Config = field(default_factory=Layer2Config)
     logging: LoggingConfig = field(default_factory=LoggingConfig)
     server: ServerConfig = field(default_factory=ServerConfig)
+    proxy: ProxyConfig = field(default_factory=ProxyConfig)
     on_suspect: str = "block"
 
 
@@ -87,6 +99,11 @@ def load_config(path: Optional[str] = None) -> MoatConfig:
         for k, v in raw["server"].items():
             if hasattr(cfg.server, k):
                 setattr(cfg.server, k, v)
+
+    if "proxy" in raw:
+        for k, v in raw["proxy"].items():
+            if hasattr(cfg.proxy, k):
+                setattr(cfg.proxy, k, v)
 
     if "on_suspect" in raw:
         cfg.on_suspect = raw["on_suspect"]
