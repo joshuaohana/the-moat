@@ -84,12 +84,15 @@ Reason: `message_received` is observe-only in current OpenClaw hook model.
 
 When `/scan` is unavailable/timeouts/errors:
 
-- `moat.failOpen: true` (default): plugin returns `ALLOW` for scan errors.
-  - Availability first, weaker security during scanner outage.
-- `moat.failOpen: false`: plugin treats scanner errors as block for scanned flows.
-  - Security first, may block normal tool workflows during outage.
+- `moat.failOpen: false` (**default, fail-closed**): plugin blocks scanned content when scanner checks cannot be completed.
+  - Security-first posture.
+  - Returned block reason is explicit: scanner unavailable, error details, and the configured moat URL to check.
+  - Tradeoff: degraded availability if the scanner is down.
+- `moat.failOpen: true` (fail-open): plugin returns `ALLOW` on scan errors.
+  - Availability-first posture.
+  - Tradeoff: reduced protection during scanner outages.
 
-Use fail-closed only if operationally acceptable.
+Choose fail-open only if you intentionally accept that outage-time risk.
 
 ---
 
@@ -103,7 +106,7 @@ Use fail-closed only if operationally acceptable.
     baseUrl: "http://127.0.0.1:9999", // The Moat base URL
     timeoutMs: 1500,                    // per /scan request timeout
     retries: 1,                         // retry attempts after first failure
-    failOpen: true                      // true=allow on scanner failure, false=block
+    failOpen: false                     // false=block on scanner failure (default), true=allow
   },
 
   hooks: {
@@ -176,7 +179,7 @@ Example snippet (adjust to your OpenClaw config shape):
           "baseUrl": "http://127.0.0.1:9999",
           "timeoutMs": 1500,
           "retries": 1,
-          "failOpen": true
+          "failOpen": false
         },
         "hooks": {
           "toolResultPersist": true,

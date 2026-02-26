@@ -51,13 +51,33 @@ test("message_received + before_prompt_build inject warning", async () => {
   assert.match(prompt.prompt, /matrix/);
 });
 
-test("fail-closed blocks when moat is unavailable", async () => {
+test("default config is fail-closed", () => {
+  const plugin = createMoatPlugin();
+  assert.equal(plugin.config.moat.failOpen, false);
+});
+
+test("fail-closed blocks with explicit scanner outage reason", async () => {
   global.fetch = async () => {
     throw new Error("down");
   };
 
-  const plugin = createMoatPlugin({ moat: { failOpen: false, retries: 0, timeoutMs: 20 } });
+  const plugin = createMoatPlugin({ moat: { retries: 0, timeoutMs: 20, baseUrl: "http://127.0.0.1:9999" } });
   const out = await plugin.tool_result_persist({ toolName: "web_fetch", result: { text: "x" } });
 
   assert.match(out.result.text, /MOAT_BLOCKED/);
+  assert.match(out.result.text, /Moat scanner unavailable: Error: down\./);
+  assert.match(out.result.text, /Content blocked as a precaution\./);
+  assert.match(out.result.text, /http:\/\/127\.0\.0\.1:9999/);
+});
+
+test("fail-open allows content when scanner is unavailable", async () => {
+  global.fetch = async () => {
+    throw new Error("down");
+  };
+
+  const plugin = createMoatPlugin({ moat: { failOpen: true, retries: 0, timeoutMs: 20 } });
+  const payload = { toolName: "web_fetch", result: { text: "x" } };
+  const out = await plugin.tool_result_persist(payload);
+
+  assert.deepEqual(out, payload);
 });
