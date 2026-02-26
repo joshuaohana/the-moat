@@ -8,6 +8,10 @@ AI agents fetch webpages, read emails, process messages — all from untrusted s
 
 The Moat scans all inbound content before it reaches your agent. Two layers of defense: fast pattern matching + LLM verification. If it's clean, it passes through. If it's poisoned, your agent never sees it.
 
+## ⚡ Quick Start
+
+If you want the fastest path to install + OpenClaw integration, follow **[QUICKSTART.md](QUICKSTART.md)**.
+
 ## How It Works
 
 ```
