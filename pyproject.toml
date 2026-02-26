@@ -28,7 +28,9 @@ classifiers = [
 
 dependencies = [
     "pyyaml>=6.0",
-    "mitmproxy>=10.0",
+    "flask>=3.0",
+    "click>=8.0",
+    "httpx>=0.25",
 ]
 
 [project.optional-dependencies]
@@ -46,6 +48,9 @@ Homepage = "https://github.com/joshuaohana/the-moat"
 Documentation = "https://github.com/joshuaohana/the-moat#readme"
 Repository = "https://github.com/joshuaohana/the-moat"
 Issues = "https://github.com/joshuaohana/the-moat/issues"
+
+[tool.setuptools.package-data]
+the_moat = ["rules/*.json"]
 
 [tool.ruff]
 target-version = "py310"

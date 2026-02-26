@@ -1,0 +1,178 @@
+[
+  {
+    "id": "INJ-001",
+    "name": "ignore-previous-instructions",
+    "category": "injection",
+    "severity": "high",
+    "pattern": "ignore\\s+(all\\s+)?(previous|prior|above|earlier|preceding)\\s+(instructions|prompts|directives|rules|guidelines)",
+    "flags": "IGNORECASE"
+  },
+  {
+    "id": "INJ-002",
+    "name": "disregard-instructions",
+    "category": "injection",
+    "severity": "high",
+    "pattern": "disregard\\s+(all\\s+)?(your\\s+)?(previous|prior|above|earlier|preceding)?\\s*(instructions|prompts|directives|rules|guidelines)",
+    "flags": "IGNORECASE"
+  },
+  {
+    "id": "INJ-003",
+    "name": "forget-instructions",
+    "category": "injection",
+    "severity": "high",
+    "pattern": "forget\\s+(all\\s+)?(previous|prior|above|your|earlier)\\s+(instructions|prompts|directives|rules|context)",
+    "flags": "IGNORECASE"
+  },
+  {
+    "id": "INJ-004",
+    "name": "new-instructions",
+    "category": "injection",
+    "severity": "high",
+    "pattern": "(new|updated|revised|real|actual|true)\\s+instructions\\s*[:\\.]\\s*(you|ignore|forget|disregard|from\\s+now|override|do\\s+not)",
+    "flags": "IGNORECASE"
+  },
+  {
+    "id": "INJ-005",
+    "name": "you-are-now",
+    "category": "injection",
+    "severity": "high",
+    "pattern": "you\\s+are\\s+now\\s+(a|an|the|my)\\s+\\S*\\s*(AI|assistant|bot|agent|hacker|pirate|villain|evil|unrestricted|unfiltered|uncensored|unlimited|jailbroken|DAN|helper\\s+with\\s+no)",
+    "flags": "IGNORECASE"
+  },
+  {
+    "id": "INJ-006",
+    "name": "dan-jailbreak",
+    "category": "injection",
+    "severity": "critical",
+    "pattern": "(DAN|Do\\s+Anything\\s+Now|DUDE|AIM|STAN|KEVIN|BISH|DAVE)\\s*(mode|prompt|jailbreak|:\\s|\u2014|\u2013|-)",
+    "flags": "IGNORECASE"
+  },
+  {
+    "id": "ROLE-001",
+    "name": "pretend-you-are",
+    "category": "steering",
+    "severity": "high",
+    "pattern": "(pretend|imagine|suppose|assume|act\\s+as\\s+if)\\s+(you\\s+are|you're|to\\s+be)\\s+(a|an|the|my)",
+    "flags": "IGNORECASE"
+  },
+  {
+    "id": "ROLE-002",
+    "name": "roleplay-steering",
+    "category": "steering",
+    "severity": "medium",
+    "pattern": "(let's\\s+play\\s+a\\s+game\\s+where|let's\\s+roleplay|let's\\s+pretend\\s+(you|we|I)|from\\s+now\\s+on\\s+you\\s+are|for\\s+the\\s+rest\\s+of\\s+this\\s+conversation\\s+you)",
+    "flags": "IGNORECASE"
+  },
+  {
+    "id": "ROLE-003",
+    "name": "switch-persona",
+    "category": "steering",
+    "severity": "high",
+    "pattern": "(switch|change|enter|activate|enable)\\s+(to|into)?\\s*(unrestricted|unfiltered|uncensored|developer|admin|root|jailbreak|evil)\\s*(mode|persona|character)?",
+    "flags": "IGNORECASE"
+  },
+  {
+    "id": "EXTRACT-001",
+    "name": "system-prompt-extraction",
+    "category": "extraction",
+    "severity": "critical",
+    "pattern": "(reveal|show|display|print|output|repeat|tell\\s+me|what\\s+(is|are))(\\s+me)?\\s+(your|the)\\s+(system\\s+prompt|initial\\s+prompt|instructions|system\\s+message|hidden\\s+prompt|original\\s+prompt|rules|SOUL\\.md|AGENTS\\.md)",
+    "flags": "IGNORECASE"
+  },
+  {
+    "id": "EXTRACT-002",
+    "name": "prompt-leak-verbatim",
+    "category": "extraction",
+    "severity": "critical",
+    "pattern": "(repeat|recite|copy|paste|echo)\\s+(everything|all|the\\s+text|word\\s+for\\s+word|verbatim)\\s+(above|before|from\\s+the\\s+beginning|in\\s+your\\s+prompt)",
+    "flags": "IGNORECASE"
+  },
+  {
+    "id": "HIDDEN-001",
+    "name": "zero-width-characters",
+    "category": "hidden",
+    "severity": "high",
+    "pattern": "[\\u200b\\u200c\\u200d\\u2060\\ufeff\\u00ad\\u200e\\u200f\\u202a-\\u202e\\u2066-\\u2069]{3,}",
+    "flags": ""
+  },
+  {
+    "id": "HIDDEN-002",
+    "name": "html-hidden-content",
+    "category": "hidden",
+    "severity": "high",
+    "pattern": "(display\\s*:\\s*none|visibility\\s*:\\s*hidden|font-size\\s*:\\s*0[;\\s]|opacity\\s*:\\s*0[;\\s\\)]|position\\s*:\\s*absolute[^>]*left\\s*:\\s*-\\d{4,}|color\\s*:\\s*(white|#fff|#ffffff|rgba\\s*\\(\\s*\\d+\\s*,\\s*\\d+\\s*,\\s*\\d+\\s*,\\s*0))",
+    "flags": "IGNORECASE"
+  },
+  {
+    "id": "HIDDEN-003",
+    "name": "base64-instruction-block",
+    "category": "hidden",
+    "severity": "medium",
+    "pattern": "(execute|decode|follow|run|process|eval)\\s+(this|the\\s+following)?\\s*:?\\s*[A-Za-z0-9+/]{40,}={0,2}",
+    "flags": "IGNORECASE"
+  },
+  {
+    "id": "CRED-001",
+    "name": "api-key-pattern",
+    "category": "credential",
+    "severity": "high",
+    "pattern": "(sk-[a-zA-Z0-9_-]{20,}|ghp_[a-zA-Z0-9]{36,}|gho_[a-zA-Z0-9]{36,}|github_pat_[a-zA-Z0-9_]{22,}|AKIA[A-Z0-9]{16}|xox[bpors]-[a-zA-Z0-9-]{10,})",
+    "flags": ""
+  },
+  {
+    "id": "CRED-002",
+    "name": "private-key-block",
+    "category": "credential",
+    "severity": "critical",
+    "pattern": "-----BEGIN\\s+(RSA\\s+)?PRIVATE\\s+KEY-----",
+    "flags": ""
+  },
+  {
+    "id": "FMT-001",
+    "name": "format-injection-markers",
+    "category": "injection",
+    "severity": "critical",
+    "pattern": "(<\\|im_start\\|>|<\\|im_end\\|>|<\\|system\\|>|<\\|user\\|>|<\\|assistant\\|>|\\[INST\\]|\\[/INST\\]|<\\|endoftext\\|>|<\\|pad\\|>)",
+    "flags": ""
+  },
+  {
+    "id": "PRIV-001",
+    "name": "privilege-escalation",
+    "category": "injection",
+    "severity": "high",
+    "pattern": "(sudo\\s+mode|admin\\s+mode|developer\\s+mode|maintenance\\s+mode|debug\\s+mode|override\\s+safety|bypass\\s+(safety|security|filter|restriction|guardrail))",
+    "flags": "IGNORECASE"
+  },
+  {
+    "id": "EXFIL-001",
+    "name": "exfiltration-instruction",
+    "category": "exfiltration",
+    "severity": "critical",
+    "pattern": "(send|post|upload|transmit|forward|email|exfiltrate)\\s+(all|the|my|your|this|these)?\\s*(data|files|credentials|keys|tokens|secrets|passwords|information|content|context|conversation|history|memory)\\s+(to|at|@)",
+    "flags": "IGNORECASE"
+  },
+  {
+    "id": "EXFIL-002",
+    "name": "crypto-scam",
+    "category": "exfiltration",
+    "severity": "critical",
+    "pattern": "(send|transfer|wire|deposit)\\s+[\\d.]+\\s*(ETH|BTC|SOL|USDT|USDC|crypto|bitcoin|ethereum|ether)\\s+(to|at)",
+    "flags": "IGNORECASE"
+  },
+  {
+    "id": "INJ-007",
+    "name": "important-override",
+    "category": "injection",
+    "severity": "high",
+    "pattern": "(IMPORTANT|CRITICAL|URGENT|ATTENTION|NOTE\\s+FROM\\s+(ADMIN|DEVELOPER|DEV\\s+TEAM|SYSTEM|OPENAI|ANTHROPIC))\\s*[:\\-\u2013\u2014]\\s*(ignore|disregard|override|bypass|update|new\\s+instructions|change\\s+your)",
+    "flags": "IGNORECASE"
+  },
+  {
+    "id": "INJ-008",
+    "name": "instruction-delimiter-escape",
+    "category": "injection",
+    "severity": "high",
+    "pattern": "(END\\s+OF\\s+(SYSTEM|INSTRUCTIONS|PROMPT|CONTEXT)|SYSTEM\\s+PROMPT\\s+END|---+\\s*(NEW|REAL|ACTUAL)\\s+(INSTRUCTIONS|PROMPT|SYSTEM))",
+    "flags": "IGNORECASE"
+  }
+]
