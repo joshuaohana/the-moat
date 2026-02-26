@@ -89,6 +89,10 @@ Responses use the canonical schema only: `verdict`, `sanitized_text` (when appli
 
 An attacker must beat both layers. Regex can't be reasoned with. The LLM catches what regex misses.
 
+## ⚠️ Install as the human, not the agent
+
+The Moat should be installed and managed by the **human operator**, not by the AI agent it protects. If the agent has write access to the scanner's files or can stop its process, a prompt injection attack could disable the protection. See [QUICKSTART.md](QUICKSTART.md) for details.
+
 ## Configuration
 
 ```yaml
