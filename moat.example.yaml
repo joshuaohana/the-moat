@@ -37,7 +37,17 @@ logging:
   format: json                     # json | text
   path: ./moat.log
 
-# Server settings (for /scan API and proxy)
+# Server settings (/scan API)
 server:
   host: 127.0.0.1
   port: 9999
+
+# Transparent HTTP proxy settings
+proxy:
+  bind: 127.0.0.1
+  port: 9998
+  connect_timeout_seconds: 10
+  read_timeout_seconds: 30
+  write_timeout_seconds: 30
+  max_scan_body_bytes: 1048576
+  log_https_connect: true
