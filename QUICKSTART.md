@@ -8,6 +8,14 @@ Get from zero to protected in ~5 minutes.
 - An OpenClaw instance (any version with plugin hook support)
 - ~2 minutes
 
+## ⚠️ Security: Install as the human, not the agent
+
+**The Moat must be installed somewhere your AI agent cannot read, modify, or stop it.** If the agent can touch the scanner — edit patterns, kill the process, or uninstall it — a prompt injection attack could disable the protection entirely.
+
+Install as your own user (not the agent's user), and run the systemd service under your account or root. Verify the agent's user has no read/write access to the install directory and no ability to stop the service.
+
+The guard cannot guard itself. **You** are the guard. The Moat is your wall.
+
 ## Step 1: Install The Moat
 
 ```bash
