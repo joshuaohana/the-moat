@@ -5,7 +5,7 @@ const DEFAULT_CONFIG = {
     baseUrl: "http://127.0.0.1:9999",
     timeoutMs: 1500,
     retries: 1,
-    failOpen: true,
+    failOpen: false,
   },
   hooks: {
     toolResultPersist: true,
@@ -159,6 +159,14 @@ function createLogger(config) {
   };
 }
 
+function formatScanError(error) {
+  if (!error) return "unknown error";
+  if (error instanceof Error) {
+    return error.stack || `${error.name}: ${error.message}`;
+  }
+  return String(error);
+}
+
 function createMoatClient(config, logger) {
   const base = config.moat.baseUrl.replace(/\/$/, "");
 
@@ -202,11 +210,17 @@ function createMoatPlugin(userConfig = {}) {
     try {
       return await moat.requestScan(text, source);
     } catch (error) {
-      logger.error("scan error", String(error));
+      const errorDetails = formatScanError(error);
+      logger.error("scan error", {
+        source,
+        error: errorDetails,
+        moatBaseUrl: config.moat.baseUrl,
+        failOpen: config.moat.failOpen,
+      });
       if (config.moat.failOpen) return { verdict: "ALLOW", reason: "fail-open" };
       return {
         verdict: "BLOCK",
-        reason: `The Moat unavailable (${String(error)})`,
+        reason: `Moat scanner unavailable: ${String(error)}. Content blocked as a precaution. Check that moat service is running on ${config.moat.baseUrl}.`,
         sanitized_text: "[MOAT_BLOCKED: scanner unavailable]",
       };
     }
